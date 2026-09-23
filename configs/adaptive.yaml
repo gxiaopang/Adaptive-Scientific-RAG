@@ -1,0 +1,4 @@
+name: adaptive-rag-v1
+retrieval_top_k: 10
+max_context_characters: 12000
+max_retrieval_attempts: 2

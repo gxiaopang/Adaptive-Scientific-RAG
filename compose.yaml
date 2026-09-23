@@ -1,0 +1,72 @@
+name: adaptive-scientific-rag
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.6-pg16-bookworm
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-adaptive_rag}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adaptive_rag_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-adaptive_rag}
+    ports:
+      - "${POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  bootstrap:
+    build:
+      context: .
+    command: ["./docker/bootstrap.sh"]
+    env_file:
+      - .env
+    environment:
+      ASR_APP_ENV: production
+      ASR_SCIFACT_DATA_DIR: /app/scifact
+      ASR_POSTGRES_DSN: postgresql+psycopg://${POSTGRES_USER:-adaptive_rag}:${POSTGRES_PASSWORD:-adaptive_rag_dev}@postgres:5432/${POSTGRES_DB:-adaptive_rag}
+    volumes:
+      - bm25-index:/app/.artifacts/indexes/bm25
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build:
+      context: .
+    env_file:
+      - .env
+    environment:
+      ASR_APP_ENV: production
+      ASR_HOST: 0.0.0.0
+      ASR_PORT: 8000
+      ASR_SCIFACT_DATA_DIR: /app/scifact
+      ASR_POSTGRES_DSN: postgresql+psycopg://${POSTGRES_USER:-adaptive_rag}:${POSTGRES_PASSWORD:-adaptive_rag_dev}@postgres:5432/${POSTGRES_DB:-adaptive_rag}
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - bm25-index:/app/.artifacts/indexes/bm25:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      bootstrap:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  bm25-index:

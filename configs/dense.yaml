@@ -1,0 +1,10 @@
+name: dense-qwen37-pgvector
+strategy: dense
+provider: alibaba-model-studio
+model_name: qwen3.7-text-embedding
+dimension: 1024
+distance_metric: cosine
+top_k: 10
+database_batch_size: 100
+index_name: scifact_qwen37_embedding_v1
+configuration_version: "1"

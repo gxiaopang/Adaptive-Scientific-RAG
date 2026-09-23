@@ -1,0 +1,6 @@
+name: hybrid-rrf-qwen37-reranker
+strategy: hybrid_rrf_reranker
+provider: alibaba-model-studio
+model_name: qwen3.7-text-rerank
+candidate_k: 50
+top_k: 10

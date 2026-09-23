@@ -1,0 +1,9 @@
+name: bm25-default
+strategy: bm25
+k1: 0.9
+b: 0.4
+top_k: 10
+tokenizer:
+  lowercase: true
+  stopwords: none
+  stemmer: none

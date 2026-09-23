@@ -1,0 +1,6 @@
+name: hybrid-rrf
+strategy: hybrid_rrf
+bm25_candidate_k: 50
+dense_candidate_k: 50
+rrf_k: 60
+top_k: 10

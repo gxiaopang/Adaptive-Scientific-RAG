@@ -1,0 +1,14 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { font-family: "Manrope", ui-sans-serif, system-ui, sans-serif; color-scheme: light; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; min-width: 320px; min-height: 100vh; background: #f4f2eb; }
+  ::selection { background: #d9ef87; color: #17201d; }
+  .font-serif { font-family: "Newsreader", Georgia, serif; }
+  .font-mono { font-family: "DM Mono", monospace; }
+}

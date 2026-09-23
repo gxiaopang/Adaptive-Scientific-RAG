@@ -1,0 +1,94 @@
+name: continuous-integration
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.6-pg16-bookworm
+        env:
+          POSTGRES_USER: adaptive_rag
+          POSTGRES_PASSWORD: integration_test
+          POSTGRES_DB: adaptive_rag_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U adaptive_rag -d adaptive_rag_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      ASR_POSTGRES_DSN: postgresql+psycopg://adaptive_rag:integration_test@127.0.0.1:5432/adaptive_rag_test
+      ASR_TEST_POSTGRES_DSN: postgresql+psycopg://adaptive_rag:integration_test@127.0.0.1:5432/adaptive_rag_test
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.7"
+          enable-cache: true
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Sync locked dependencies
+        run: uv sync --locked --group dev
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Type check
+        run: uv run mypy src
+
+      - name: Apply PostgreSQL migrations
+        run: uv run alembic upgrade head
+
+      - name: Test
+        run: uv run pytest
+
+      - name: Validate SciFact
+        run: uv run python scripts/validate_scifact.py
+
+      - name: Verify import is side-effect free
+        run: uv run python -c "from adaptive_rag.main import app; print(app.title)"
+
+      - name: Frontend lint
+        working-directory: frontend
+        run: pnpm lint
+
+      - name: Frontend type check
+        working-directory: frontend
+        run: pnpm typecheck
+
+      - name: Frontend test
+        working-directory: frontend
+        run: pnpm test
+
+      - name: Frontend production build
+        working-directory: frontend
+        run: pnpm build
+
+      - name: Validate Compose
+        run: docker compose config
+
+      - name: Build Compose images
+        run: docker compose build

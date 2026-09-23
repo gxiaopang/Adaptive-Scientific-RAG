@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.log
+
+# Environments and local configuration
+.venv/
+.env
+
+# Generated project artifacts
+.artifacts/
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+
+# Frontend local configuration
+frontend/.env
+frontend/.env.local
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+
+# Local planning and interview notes
+AGENTS.md
+PLAN.md
+导学-科研RAG.md
+面经-科研RAG.md
